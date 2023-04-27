@@ -8,7 +8,7 @@ interface AuthenticateUseCaseRequest {
   password: string
 }
 
-interface AuthenticateUserCaseResponse {
+interface AuthenticateUseCaseResponse {
   user: User
 }
 
@@ -18,7 +18,7 @@ export class AuthenticateUseCase {
   async execute({
     email,
     password,
-  }: AuthenticateUseCaseRequest): Promise<AuthenticateUserCaseResponse> {
+  }: AuthenticateUseCaseRequest): Promise<AuthenticateUseCaseResponse> {
     const user = await this.usersRepository.findByEmail(email)
 
     if (!user) {
