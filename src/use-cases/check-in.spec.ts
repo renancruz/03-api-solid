@@ -1,26 +1,28 @@
 import { expect, describe, it, beforeEach, vi, afterEach } from 'vitest'
 import { InMemoryCheckInsRepository } from '@/repositories/in-memory/in-memory-check-ins-repository'
 import { CheckInUseCase } from './check-in'
-import { InMemoryGynsRepository } from '@/repositories/in-memory/in-memory-gyns-repository'
 import { Decimal } from '@prisma/client/runtime/library'
+import { InMemoryGymsRepository } from '@/repositories/in-memory/in-memory-gyms-repository'
+import { MaxNumberOfCheckInsError } from '@/errors/max-number-of-check-ins-error'
+import { MaxDistanceError } from '@/errors/max-distance-error'
 
 let checkInRepository: InMemoryCheckInsRepository
-let gynsRepository: InMemoryGynsRepository
+let gymsRepository: InMemoryGymsRepository
 let sut: CheckInUseCase
 
 describe('Check-in Use Case', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     checkInRepository = new InMemoryCheckInsRepository()
-    gynsRepository = new InMemoryGynsRepository()
-    sut = new CheckInUseCase(checkInRepository, gynsRepository)
+    gymsRepository = new InMemoryGymsRepository()
+    sut = new CheckInUseCase(checkInRepository, gymsRepository)
 
-    gynsRepository.items.push({
+    await gymsRepository.create({
       id: 'gym-01',
       title: 'JavaScript Gym',
       description: '',
       phone: '',
-      latitude: new Decimal(-22.0660686),
-      longitude: new Decimal(-42.9236307),
+      latitude: -22.0660686,
+      longitude: -42.9236307,
     })
 
     vi.useFakeTimers()
@@ -58,7 +60,7 @@ describe('Check-in Use Case', () => {
         userLatitude: -22.0660686,
         userLongitude: -42.9236307,
       }),
-    ).rejects.toBeInstanceOf(Error)
+    ).rejects.toBeInstanceOf(MaxNumberOfCheckInsError)
   })
 
   it('should not be able to check in twice but in different day', async () => {
@@ -84,7 +86,7 @@ describe('Check-in Use Case', () => {
   })
 
   it('should not be able to check in distant gym', async () => {
-    gynsRepository.items.push({
+    gymsRepository.items.push({
       id: 'gym-02',
       title: 'JavaScript Gym',
       description: '',
@@ -100,6 +102,6 @@ describe('Check-in Use Case', () => {
         userLatitude: -22.0660686,
         userLongitude: -42.9236307,
       }),
-    ).rejects.toBeInstanceOf(Error)
+    ).rejects.toBeInstanceOf(MaxDistanceError)
   })
 })
